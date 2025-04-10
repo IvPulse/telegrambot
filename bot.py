@@ -21,6 +21,7 @@ def forward_to_admin(update, context):
     user_chat_id = update.message.chat_id
     user_name = update.message.from_user.first_name
 
+    print(f"Получено сообщение от {user_name} (ID: {user_chat_id})")
     bot.send_message(
         chat_id=ADMIN_ID,
         text=f"Сообщение от {user_name} (ID: {user_chat_id}):\n{user_message}"
@@ -38,8 +39,14 @@ def reply_to_user(update, context):
         user_chat_id = int(message_text.split()[0])
         reply_text = " ".join(message_text.split()[1:])
 
-        print(f"Попытка отправить сообщение пользователю с ID: {user_chat_id}")
+        print(f"Админ (ID: {ADMIN_ID}) пытается отправить сообщение пользователю с ID: {user_chat_id}")
         print(f"Текст ответа: {reply_text}")
+
+        # Проверяем, не совпадает ли user_chat_id с ADMIN_ID
+        if user_chat_id == ADMIN_ID:
+            print("Ошибка: user_chat_id совпадает с ADMIN_ID, сообщение не отправлено")
+            bot.send_message(chat_id=ADMIN_ID, text="Ошибка: Нельзя отправить сообщение самому себе!")
+            return
 
         # Отправляем сообщение пользователю
         bot.send_message(chat_id=user_chat_id, text=f"Ответ от админа:\n{reply_text}")
@@ -48,12 +55,18 @@ def reply_to_user(update, context):
         # Отправляем подтверждение админу
         bot.send_message(chat_id=ADMIN_ID, text="Ответ успешно отправлен!")
         print("Подтверждение отправлено админу")
+    except telegram.error.TelegramError as e:
+        error_message = f"Ошибка Telegram API: {str(e)}"
+        print(error_message)
+        bot.send_message(chat_id=ADMIN_ID, text=error_message)
     except (ValueError, IndexError):
-        bot.send_message(chat_id=ADMIN_ID, text="Ошибка! Формат: '<chat_id> текст ответа'")
-        print("Ошибка: Неверный формат сообщения")
+        error_message = "Ошибка! Формат: '<chat_id> текст ответа'"
+        print(error_message)
+        bot.send_message(chat_id=ADMIN_ID, text=error_message)
     except Exception as e:
-        bot.send_message(chat_id=ADMIN_ID, text=f"Произошла ошибка: {str(e)}")
-        print(f"Произошла ошибка: {str(e)}")
+        error_message = f"Произошла неизвестная ошибка: {str(e)}"
+        print(error_message)
+        bot.send_message(chat_id=ADMIN_ID, text=error_message)
 
 def run_bot():
     """Запускает бота"""
