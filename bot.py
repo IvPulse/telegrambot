@@ -30,6 +30,7 @@ def forward_to_admin(update, context):
 def reply_to_user(update, context):
     """Обрабатывает ответы админа пользователю"""
     if update.message.chat_id != ADMIN_ID:
+        print(f"Сообщение не от админа. Chat ID: {update.message.chat_id}")
         return
 
     try:
@@ -37,10 +38,22 @@ def reply_to_user(update, context):
         user_chat_id = int(message_text.split()[0])
         reply_text = " ".join(message_text.split()[1:])
 
+        print(f"Попытка отправить сообщение пользователю с ID: {user_chat_id}")
+        print(f"Текст ответа: {reply_text}")
+
+        # Отправляем сообщение пользователю
         bot.send_message(chat_id=user_chat_id, text=f"Ответ от админа:\n{reply_text}")
+        print(f"Сообщение успешно отправлено пользователю с ID: {user_chat_id}")
+
+        # Отправляем подтверждение админу
         bot.send_message(chat_id=ADMIN_ID, text="Ответ успешно отправлен!")
+        print("Подтверждение отправлено админу")
     except (ValueError, IndexError):
         bot.send_message(chat_id=ADMIN_ID, text="Ошибка! Формат: '<chat_id> текст ответа'")
+        print("Ошибка: Неверный формат сообщения")
+    except Exception as e:
+        bot.send_message(chat_id=ADMIN_ID, text=f"Произошла ошибка: {str(e)}")
+        print(f"Произошла ошибка: {str(e)}")
 
 def run_bot():
     """Запускает бота"""
