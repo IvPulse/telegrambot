@@ -1,5 +1,9 @@
 import telegram
 from telegram.ext import Updater, MessageHandler, Filters, CommandHandler
+import threading
+import http.server
+import socketserver
+import os
 
 # Токен бота и ID админа
 TOKEN = '7929433274:AAG7SAuW95or_r2kjOc4bLsLvruXzDy-nME'
@@ -38,7 +42,7 @@ def reply_to_user(update, context):
     except (ValueError, IndexError):
         bot.send_message(chat_id=ADMIN_ID, text="Ошибка! Формат: '<chat_id> текст ответа'")
 
-def main():
+def run_bot():
     """Запускает бота"""
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
@@ -50,5 +54,18 @@ def main():
     updater.start_polling()
     updater.idle()
 
+def run_server():
+    """Запускает простой HTTP-сервер для Render"""
+    PORT = int(os.getenv("PORT", 8000))  # Render предоставляет порт через переменную PORT
+    Handler = http.server.SimpleHTTPRequestHandler
+    with socketserver.TCPServer(("", PORT), Handler) as httpd:
+        print(f"Serving on port {PORT}")
+        httpd.serve_forever()
+
 if __name__ == '__main__':
-    main()
+    # Запускаем HTTP-сервер в отдельном потоке
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
+
+    # Запускаем бота
+    run_bot()
